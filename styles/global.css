@@ -18,9 +18,7 @@
   padding: 0;
 }
 
-html {
-  scroll-behavior: smooth;
-}
+html { scroll-behavior: smooth; }
 
 body {
   background: var(--bg);
@@ -43,49 +41,9 @@ body::before {
   z-index: 0;
 }
 
-button {
-  cursor: pointer;
-  font-family: 'Syne', sans-serif;
-}
+button { cursor: pointer; font-family: 'Syne', sans-serif; }
+input, textarea, select { font-family: 'DM Mono', monospace; }
 
-input, textarea, select {
-  font-family: 'DM Mono', monospace;
-}
-
-::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 4px;
-}
-
-/* Animations */
-@keyframes pulse {
-  0%, 100% { box-shadow: 0 0 20px rgba(127, 255, 110, 0.5); }
-  50% { box-shadow: 0 0 35px rgba(127, 255, 110, 0.8); }
-}
-
-@keyframes slideIn {
-  from { opacity: 0; transform: translateY(-8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes toastIn {
-  from { opacity: 0; transform: translateX(20px); }
-  to { opacity: 1; transform: translateX(0); }
-}
-
-@keyframes dots {
-  0% { content: '.'; }
-  33% { content: '..'; }
-  66% { content: '...'; }
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
