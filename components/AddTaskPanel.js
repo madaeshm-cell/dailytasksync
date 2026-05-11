@@ -21,43 +21,28 @@ export default function AddTaskPanel({ onAddTask, onToast }) {
   function handleAdd() {
     if (!name.trim()) { onToast('Task name is required', 'error'); return; }
     onAddTask({ name: name.trim(), desc: desc.trim(), status });
-    setName('');
-    setDesc('');
-    setStatus('Done');
-    setShowEmail(false);
-    setEmailText('');
-    onToast(`Task "${name.trim()}" added!`, 'success');
+    setName(''); setDesc(''); setStatus('Done');
+    setShowEmail(false); setEmailText('');
   }
 
   async function handleGenerateEmail() {
     if (!name.trim()) { onToast('Enter a task name first', 'error'); return; }
     const apiKey = getApiKey();
     if (!apiKey) { onToast('Save your Gemini API key first', 'error'); return; }
-
-    setLoading(true);
-    setShowEmail(true);
-    setEmailText('');
+    setLoading(true); setShowEmail(true); setEmailText('');
     try {
-      const config = getConfig();
-      const task = { name: name.trim(), desc: desc.trim(), status };
-      const prompt = buildSingleTaskPrompt(task, config);
-      const result = await callGemini(prompt, apiKey);
+      const result = await callGemini(buildSingleTaskPrompt({ name: name.trim(), desc: desc.trim(), status }, getConfig()), apiKey);
       setEmailText(result);
       onToast('Email generated!', 'success');
     } catch (e) {
       setEmailText(`Error: ${e.message}`);
       onToast(e.message, 'error');
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   }
 
   function handleClear() {
-    setName('');
-    setDesc('');
-    setStatus('Done');
-    setShowEmail(false);
-    setEmailText('');
+    setName(''); setDesc(''); setStatus('Done');
+    setShowEmail(false); setEmailText('');
   }
 
   return (
@@ -69,63 +54,30 @@ export default function AddTaskPanel({ onAddTask, onToast }) {
       <div className={styles.body}>
         <div className={styles.formGroup}>
           <label className={styles.label}>Task Name</label>
-          <input
-            type="text"
-            className={styles.input}
-            placeholder="Fix login bug, Write report..."
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
-          />
+          <input type="text" className={styles.input} placeholder="Fix login bug, Write report..." value={name}
+            onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleAdd()} />
         </div>
-
         <div className={styles.formGroup}>
           <label className={styles.label}>Description / Notes</label>
-          <textarea
-            className={styles.textarea}
-            placeholder="Details about what was done or what needs to be done..."
-            value={desc}
-            onChange={(e) => setDesc(e.target.value)}
-            rows={3}
-          />
+          <textarea className={styles.textarea} placeholder="Details about what was done..." value={desc} onChange={(e) => setDesc(e.target.value)} rows={3} />
         </div>
-
         <div className={styles.formGroup}>
           <label className={styles.label}>Status</label>
           <div className={styles.statusBtns}>
             {STATUSES.map((s) => (
-              <button
-                key={s.value}
-                className={`${styles.statusBtn} ${status === s.value ? styles[`active_${s.color}`] : ''}`}
-                onClick={() => setStatus(s.value)}
-              >
+              <button key={s.value} className={`${styles.statusBtn} ${status === s.value ? styles[`active_${s.color}`] : ''}`} onClick={() => setStatus(s.value)}>
                 {s.label}
               </button>
             ))}
           </div>
         </div>
-
         <div className={styles.actions}>
-          <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={handleAdd}>
-            ＋ Add Task
-          </button>
-          <button
-            className={`${styles.btn} ${styles.btnSecondary}`}
-            onClick={handleGenerateEmail}
-            disabled={loading}
-          >
+          <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={handleAdd}>＋ Add Task</button>
+          <button className={`${styles.btn} ${styles.btnSecondary}`} onClick={handleGenerateEmail} disabled={loading}>
             {loading ? '⏳ Generating...' : '✉ Generate Email'}
           </button>
         </div>
-
-        {showEmail && (
-          <EmailPreview
-            text={emailText}
-            loading={loading}
-            label="Task Email"
-            onToast={onToast}
-          />
-        )}
+        {showEmail && <EmailPreview text={emailText} loading={loading} label="Task Email" onToast={onToast} />}
       </div>
     </div>
   );
