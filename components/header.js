@@ -1,0 +1,60 @@
+import { useState, useEffect } from 'react';
+import styles from './Header.module.css';
+
+function pad(n) { return String(n).padStart(2, '0'); }
+
+function getCountdown(targetH, targetM) {
+  const now = new Date();
+  const target = new Date(now);
+  target.setHours(targetH, targetM, 0, 0);
+  if (target <= now) target.setDate(target.getDate() + 1);
+  const diff = Math.floor((target - now) / 1000);
+  return `in ${pad(Math.floor(diff / 3600))}:${pad(Math.floor((diff % 3600) / 60))}:${pad(diff % 60)}`;
+}
+
+export default function Header() {
+  const [time, setTime] = useState('--:--:--');
+  const [morningCD, setMorningCD] = useState('--:--:--');
+  const [eveningCD, setEveningCD] = useState('--:--:--');
+
+  useEffect(() => {
+    function tick() {
+      const now = new Date();
+      setTime(now.toLocaleTimeString('en-US', { hour12: false }));
+      setMorningCD(getCountdown(9, 0));
+      setEveningCD(getCountdown(18, 0));
+    }
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  return (
+    <header className={styles.header}>
+      <div className={styles.logo}>
+        <div className={styles.logoDot} />
+        <h1 className={styles.logoText}>Daily<span className={styles.accent}>Sync</span></h1>
+      </div>
+      <div className={styles.scheduleBar}>
+        <div className={styles.pill}>
+          <span className={styles.pillDot} />
+          <span>Morning · 9:00 AM</span>
+          <span className={styles.countdown}>{morningCD}</span>
+        </div>
+        <div className={styles.pill}>
+          <span className={`${styles.pillDot} ${styles.blue}`} />
+          <span>Evening · 6:00 PM</span>
+          <span className={`${styles.countdown} ${styles.blue}`}>{eveningCD}</span>
+        </div>
+        <div className={`${styles.pill} ${styles.model}`}>
+          <span className={styles.modelIcon}>◆</span>
+          <span>Gemini 1.5 Flash (Free)</span>
+        </div>
+      </div>
+      <div className={styles.clockArea}>
+        <div className={styles.clock}>{time}</div>
+        <div className={styles.clockLabel}>Local Time</div>
+      </div>
+    </header>
+  );
+}
