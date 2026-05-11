@@ -12,7 +12,6 @@ export default function Home() {
   const [tasks, setTasks] = useState([]);
   const { toasts, toast } = useToast();
 
-  // Load tasks from localStorage on mount
   useEffect(() => {
     setTasks(getTasks());
   }, []);
@@ -48,17 +47,14 @@ export default function Home() {
     <div className={styles.app}>
       <Header />
       <ConfigPanel onToast={toast} />
-
       <div className={styles.grid}>
         <AddTaskPanel onAddTask={addTask} onToast={toast} />
         <TaskListPanel tasks={tasks} onDelete={deleteTask} onClearAll={clearAllTasks} />
         <SummaryPanel tasks={tasks} onToast={toast} />
       </div>
-
       <footer className={styles.footer}>
-        <span>DailySync · AI-powered by Gemini 1.5 Flash (free) · Tasks auto-clear daily</span>
+        DailySync · AI-powered by Gemini 1.5 Flash (free) · Tasks auto-clear daily
       </footer>
-
       <ToastContainer toasts={toasts} />
     </div>
   );
