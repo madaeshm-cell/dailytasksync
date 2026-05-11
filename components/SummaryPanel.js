@@ -1,0 +1,90 @@
+import { useState, useEffect, useRef } from 'react';
+import { callGemini, buildDailySummaryPrompt } from '../lib/gemini';
+import { getApiKey, getConfig } from '../lib/storage';
+import EmailPreview from './EmailPreview';
+import styles from './SummaryPanel.module.css';
+
+export default function SummaryPanel({ tasks, onToast }) {
+  const [emailText, setEmailText] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [emailLabel, setEmailLabel] = useState('Daily Summary');
+  const [triggered, setTriggered] = useState(false);
+  const lastTriggerRef = useRef({ morning: null, evening: null });
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      const now = new Date();
+      const h = now.getHours(), m = now.getMinutes(), s = now.getSeconds();
+      if (s !== 0) return;
+      if (h === 9 && m === 0) {
+        const key = now.toDateString() + '-morning';
+        if (lastTriggerRef.current.morning !== key) {
+          lastTriggerRef.current.morning = key;
+          onToast('⏰ Morning digest auto-generating...', 'info');
+          generate('morning');
+        }
+      }
+      if (h === 18 && m === 0) {
+        const key = now.toDateString() + '-evening';
+        if (lastTriggerRef.current.evening !== key) {
+          lastTriggerRef.current.evening = key;
+          onToast('⏰ Evening summary auto-generating...', 'info');
+          generate('evening');
+        }
+      }
+    }, 1000);
+    return () => clearInterval(id);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tasks]);
+
+  async function generate(type = 'current') {
+    if (tasks.length === 0) { onToast('No tasks to summarize', 'error'); return; }
+    const apiKey = getApiKey();
+    if (!apiKey) { onToast('Save your Gemini API key first', 'error'); return; }
+    setLoading(true); setTriggered(true); setEmailText('');
+    const label = type === 'morning' ? '☀ Morning Digest' : type === 'evening' ? '🌙 Evening Summary' : '⚡ Task Summary';
+    setEmailLabel(label);
+    try {
+      const result = await callGemini(buildDailySummaryPrompt(tasks, type, getConfig()), apiKey);
+      setEmailText(result);
+      onToast(`${label} ready!`, 'success');
+    } catch (e) {
+      setEmailText(`Error: ${e.message}`);
+      onToast(e.message, 'error');
+    } finally { setLoading(false); }
+  }
+
+  return (
+    <div className={styles.panel}>
+      <div className={styles.header}>
+        <span className={styles.title}>Daily Summary Email</span>
+        <div className={styles.actions}>
+          <button className={`${styles.btn} ${styles.btnMorning}`} onClick={() => generate('morning')} disabled={loading}>☀ Morning (9AM)</button>
+          <button className={`${styles.btn} ${styles.btnEvening}`} onClick={() => generate('evening')} disabled={loading}>🌙 Evening (6PM)</button>
+          <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={() => generate('current')} disabled={loading}>
+            {loading ? '⏳ Generating...' : '⚡ Generate Now'}
+          </button>
+        </div>
+      </div>
+      <div className={styles.body}>
+        {!triggered ? (
+          <div className={styles.empty}>
+            <div className={styles.emptyIcon}>📬</div>
+            <p className={styles.emptyTitle}>Ready to generate your daily summary</p>
+            <p className={styles.emptyDesc}>
+              Auto-triggers at <strong>9:00 AM</strong> and <strong>6:00 PM</strong> when this tab is open.
+              Click <strong>Generate Now</strong> for an instant summary.
+            </p>
+            <div className={styles.emptyStats}>
+              <span className={styles.statChip}>{tasks.length} tasks loaded</span>
+              <span className={styles.statChip}>{tasks.filter(t => t.status === 'Done').length} done</span>
+              <span className={styles.statChip}>{tasks.filter(t => t.status === 'Pending').length} pending</span>
+            </div>
+          </div>
+        ) : (
+          <EmailPreview text={emailText} loading={loading} label={emailLabel} onToast={onToast} />
+        )}
+      </div>
+    </div>
+  );
+}
