@@ -17,12 +17,8 @@
 }
 
 @media (max-width: 768px) {
-  .grid {
-    grid-template-columns: 1fr;
-  }
-  .app {
-    padding: 16px;
-  }
+  .grid { grid-template-columns: 1fr; }
+  .app { padding: 16px; }
 }
 
 .footer {
